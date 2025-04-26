@@ -1,5 +1,6 @@
 /*采用数组栈简单实现带括号加减乘除表达式运算*/
 #include <stdio.h>
+#include <stdlib.h>
 
 // 获取一行字符串
 void GetStr(char s[])
@@ -79,20 +80,17 @@ int OperatorPrecedence(char operation)
 // 含括号+-*/%表达式计算
 int Calculator(char* s)
 {
-	int ds[32];
+	int ds[32], n;
 	char cs[32];
-	int i, n, dtop = 0, ctop = 0;
+	int i, dtop = 0, ctop = 0;
+	char* nend;
 	for(i=0; s[i]!='\n'; i++)
 	{
 		if(s[i]>='0' && s[i]<='9')
 		{
 			//读取一个数字
-			for(n=0; s[i]>='0' && s[i]<='9'; i++)
-			{
-				n *= 10;
-				n += s[i]-'0'+0;
-			}
-			i--;
+			n = strtol(s+i, &nend, 0);
+			i = nend-s-1;
 			ds[dtop] = n;
 			dtop++;
 		}
@@ -101,13 +99,13 @@ int Calculator(char* s)
 		{
 			if(s[i] == '-')
 			{
-				if(i == 0 || s[i-1] == '(')
+				if(i == 0 || s[i-1] == '(')//(-n) -> (0-n)
 				{
 					ds[dtop] = 0;
 					dtop++;
 				}
 			}
-			if(s[i] == '(')
+			if(s[i] == '(')//n() -> n*()
 			{
 				if(i > 0 && s[i-1]>='0' && s[i-1]<='9')
 				{
@@ -116,13 +114,8 @@ int Calculator(char* s)
 				}
 			}
 			if(ctop > 0 && cs[ctop-1] != '(' && dtop > 1
-				&& OperatorPrecedence(s[i]) > OperatorPrecedence(cs[ctop-1]))
+				&& OperatorPrecedence(s[i]) >= OperatorPrecedence(cs[ctop-1]))
 			{
-				if(ctop > 1 && cs[ctop-2] == '-')
-				{
-					ds[dtop-2] *= -1;
-					cs[ctop-2] = '+';
-				}
 				n = Calculate(ds[dtop-2], cs[ctop-1], ds[dtop-1]);
 				dtop -= 2;
 				ctop--;
@@ -136,11 +129,6 @@ int Calculator(char* s)
 		{
 			while(ctop > 0 && cs[ctop-1] != '(')
 			{
-				if(ctop > 1 && cs[ctop-2] == '-')
-				{
-					ds[dtop-2] *= -1;
-					cs[ctop-2] = '+';
-				}
 				n = Calculate(ds[dtop-2], cs[ctop-1], ds[dtop-1]);
 				dtop -= 2;
 				ctop--;
@@ -152,11 +140,6 @@ int Calculator(char* s)
 	}
 	while(ctop > 0 && dtop > 1)
 	{
-		if(ctop > 1 && cs[ctop-2] == '-')
-		{
-			ds[dtop-2] *= -1;
-			cs[ctop-2] = '+';
-		}
 		n = Calculate(ds[dtop-2], cs[ctop-1], ds[dtop-1]);
 		dtop -= 2;
 		ctop--;
